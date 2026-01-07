@@ -1,4 +1,4 @@
-package com.example.projekt17_part1;
+package com.example.traininghelper;
 
 public class Training {
     private int id;
