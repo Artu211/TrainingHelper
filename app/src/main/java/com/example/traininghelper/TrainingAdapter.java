@@ -8,44 +8,40 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
-public class TrainingAdapter extends RecyclerView.Adapter<TrainingAdapter.TrainingViewHolder> {
+public class TrainingAdapter extends RecyclerView.Adapter<TrainingAdapter.ViewHolder> {
 
-    private List<Training> trainingList;
+    private List<Training> list;
 
-    public TrainingAdapter(List<Training> trainingList) {
-        this.trainingList = trainingList;
+    public TrainingAdapter(List<Training> list) {
+        this.list = list;
     }
 
     @NonNull
     @Override
-    public TrainingViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_training, parent, false);
-        return new TrainingViewHolder(view);
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.item_training, parent, false);
+        return new ViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull TrainingViewHolder holder, int position) {
-        Training training = trainingList.get(position);
-        holder.textName.setText(training.getName());
-        
-        holder.textReps.setText("Ilość serii: " + training.getReps() + "x");
-        
-        holder.textDate.setText(training.getDate());
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        Training training = list.get(position);
+        holder.txtName.setText(training.getName());
+        holder.txtReps.setText("Ilość serii: : " + training.getReps() + "x");
     }
 
     @Override
     public int getItemCount() {
-        return trainingList.size();
+        return list.size();
     }
 
-    public static class TrainingViewHolder extends RecyclerView.ViewHolder {
-        TextView textName, textReps, textDate;
-
-        public TrainingViewHolder(@NonNull View itemView) {
+    public static class ViewHolder extends RecyclerView.ViewHolder {
+        TextView txtName, txtReps;
+        public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            textName = itemView.findViewById(R.id.textName);
-            textReps = itemView.findViewById(R.id.textReps);
-            textDate = itemView.findViewById(R.id.textDate);
+            txtName = itemView.findViewById(R.id.textName);
+            txtReps = itemView.findViewById(R.id.textReps);
         }
     }
 }
