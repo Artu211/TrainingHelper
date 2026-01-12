@@ -1,43 +1,59 @@
 package com.example.traininghelper;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import java.util.ArrayList;
-import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    private TrainingDbHelper dbHelper;
-    private TrainingAdapter adapter;
-    private List<Training> trainingList = new ArrayList<>();
     private RecyclerView recyclerView;
+    private TrainingAdapter adapter;
+    private ArrayList<Training> trainingList;
+    private TrainingDbHelper dbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_main); // Upewnij się, że w tym XML jest RecyclerView i Button
 
         dbHelper = new TrainingDbHelper(this);
+        trainingList = new ArrayList<>();
+
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        Button testButton = findViewById(R.id.bttn);
-        testButton.setOnClickListener(v -> {
-            startActivity(new Intent(this, AddTraining.class));
-        });
+        adapter = new TrainingAdapter(trainingList);
+        recyclerView.setAdapter(adapter);
 
-        loadDataFromDatabase();
+        Button btnAdd = findViewById(R.id.bttn);
+        btnAdd.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                startActivity(new Intent(MainActivity.this, AddTrainingActivity.class));
+            }
+        });
+        Button btnClear = findViewById(R.id.bttn2);
+        btnClear.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dbHelper.clearDatabase();
+                loadDataFromDatabase();
+                adapter.notifyDataSetChanged();
+            }
+        });
     }
 
+    // Wywoływane zawsze, gdy wracamy do tej aktywności
     @Override
     protected void onResume() {
         super.onResume();
@@ -45,39 +61,27 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void loadDataFromDatabase() {
-        trainingList.clear();
+        trainingList.clear(); // Czyścimy listę, żeby nie dublować wpisów
         SQLiteDatabase db = dbHelper.getReadableDatabase();
 
-        Cursor cursor = db.query(
-                TrainingDbHelper.TABLE_NAME,
-                null, null, null, null, null,
-                TrainingDbHelper.COLUMN_ID + " DESC"
-        );
+        // Pobieramy wszystkie wiersze
+        Cursor cursor = db.query(TrainingDbHelper.TABLE_NAME, null, null, null, null, null, TrainingDbHelper.COLUMN_ID + " DESC");
 
-        if (cursor != null) {
-            while (cursor.moveToNext()) {
-                int id = cursor.getInt(cursor.getColumnIndexOrThrow(TrainingDbHelper.COLUMN_ID));
-                String name = cursor.getString(cursor.getColumnIndexOrThrow(TrainingDbHelper.COLUMN_NAME));
-                int reps = cursor.getInt(cursor.getColumnIndexOrThrow(TrainingDbHelper.COLUMN_REPS));
-                int duration = cursor.getInt(cursor.getColumnIndexOrThrow(TrainingDbHelper.COLUMN_DURATION));
-                String date = cursor.getString(cursor.getColumnIndexOrThrow(TrainingDbHelper.COLUMN_DATE));
-                String difficulty = cursor.getString(cursor.getColumnIndexOrThrow(TrainingDbHelper.COLUMN_DIFFICULTY));
+        while (cursor.moveToNext()) {
+            // Odczytujemy dane z kolumn (indeksy kolumn)
+            String name = cursor.getString(cursor.getColumnIndexOrThrow(TrainingDbHelper.COLUMN_NAME));
+            int reps = cursor.getInt(cursor.getColumnIndexOrThrow(TrainingDbHelper.COLUMN_REPS));
 
-                trainingList.add(new Training(id, name, reps, duration, date, difficulty));
-            }
-            cursor.close();
+            // Dodajemy do listy
+            trainingList.add(new Training(name, reps));
         }
-
-
-        if (trainingList.isEmpty()) {
-            Toast.makeText(this, "Brak zapisanych treningów. Dodaj pierwszy!", Toast.LENGTH_LONG).show();
-        }
-
-        if (adapter == null) {
-            adapter = new TrainingAdapter(trainingList);
-            recyclerView.setAdapter(adapter);
-        } else {
+        cursor.close();
+        if(trainingList.isEmpty()){
+            Toast.makeText(this, "Brak zapisanych treningów. Dodaj pierwszy!", Toast.LENGTH_SHORT).show();
+        }else{
+            // Odświeżamy widok
             adapter.notifyDataSetChanged();
         }
+
     }
 }
